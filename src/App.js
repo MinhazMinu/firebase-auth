@@ -78,9 +78,13 @@ function App() {
     newUserInfo.isValid = isValid;
     setUser(newUserInfo);
   };
-  const createAccount = () => {
+  const createAccount = e => {
     if (user.isValid) {
+      console.log("valid");
+    } else {
+      console.log("not valid");
     }
+    e.preventDefault();
   };
   return (
     <div className="App">
