@@ -48,7 +48,9 @@ function App() {
           name: "",
           photo: "",
           email: "",
-          password: ""
+          error: "",
+          password: "",
+          existingUser: false
         };
         setUser(signOutUser);
       })
@@ -62,6 +64,13 @@ function App() {
    */
   const is_valid_email = email => /(.+)@(.+){2,}\.(.+){2,}/.test(email);
   const hasNumber = myString => /\d/.test(myString);
+  const switchForm = e => {
+    const createdUser = { ...user };
+
+    createdUser.error = "";
+    createdUser.existingUser = e.target.checked;
+    setUser(createdUser);
+  };
 
   const handleChange = e => {
     const newUserInfo = { ...user, [e.target.name]: e.target.value };
@@ -80,11 +89,35 @@ function App() {
   };
   const createAccount = e => {
     if (user.isValid) {
-      console.log("valid");
+      firebase
+        .auth()
+        .createUserWithEmailAndPassword(user.email, user.password)
+        .then(res => {
+          const createdUser = { ...user };
+          createdUser.isSignedIn = true;
+          createdUser.error = "";
+          setUser(createdUser);
+          console.log(res);
+        })
+
+        .catch(function(err) {
+          // Handle Errors here.
+          const createdUser = { ...user };
+          createdUser.isSignedIn = false;
+          createdUser.error = err.message;
+          setUser(createdUser);
+          console.log(err);
+        });
     } else {
       console.log("not valid");
     }
     e.preventDefault();
+    e.target.reset();
+  };
+
+  const signInUser = e => {
+    e.preventDefault();
+    e.target.reset();
   };
   return (
     <div className="App">
@@ -104,8 +137,53 @@ function App() {
       <hr />
       <hr />
       <hr />
-      <form onSubmit={createAccount}>
+      <label htmlFor="switch">
+        <input
+          type="checkbox"
+          name="switchFrom"
+          id="switch"
+          onChange={switchForm}
+        />{" "}
+        New User?
+      </label>
+      <form
+        style={{ display: user.existingUser ? "none" : "block" }}
+        onSubmit={signInUser}
+      >
+        <br />
+        <input
+          type="text"
+          name="email"
+          placeholder="email"
+          onBlur={handleChange}
+          required
+        />
+        <br />
+        <input
+          type="password"
+          name="password"
+          placeholder="password"
+          onBlur={handleChange}
+          required
+        />
+        <br />
+        {/* <button onClick={createAccount}>Create Account</button> */}
+        <input type="submit" value="Sign In" />
+      </form>
+      {/* /** * ========================== */}
+      <form
+        style={{ display: user.existingUser ? "block" : "none" }}
+        onSubmit={createAccount}
+      >
         <h1> Auth Yourself</h1>
+        <input
+          type="text"
+          name="name"
+          placeholder="name"
+          onBlur={handleChange}
+          required
+        />{" "}
+        <br />
         <input
           type="text"
           name="email"
@@ -125,6 +203,9 @@ function App() {
         {/* <button onClick={createAccount}>Create Account</button> */}
         <input type="submit" value="Create Account" />
       </form>
+      {user.error && (
+        <p style={{ color: "red", fontSize: "26px" }}>{user.error}</p>
+      )}
     </div>
   );
 }
