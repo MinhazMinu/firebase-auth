@@ -116,6 +116,27 @@ function App() {
   };
 
   const signInUser = e => {
+    if (user.isValid) {
+      firebase
+        .auth()
+        .signInWithEmailAndPassword(user.email, user.password)
+        .then(res => {
+          const createdUser = { ...user };
+          createdUser.isSignedIn = true;
+          createdUser.error = "";
+          setUser(createdUser);
+          console.log(res);
+        })
+
+        .catch(function(err) {
+          // Handle Errors here.
+          const createdUser = { ...user };
+          createdUser.isSignedIn = false;
+          createdUser.error = err.message;
+          setUser(createdUser);
+          console.log(err);
+        });
+    }
     e.preventDefault();
     e.target.reset();
   };
