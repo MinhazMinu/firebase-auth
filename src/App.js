@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import logo from "./logo.svg";
+
 import "./App.css";
 import * as firebase from "firebase/app";
 import "firebase/auth";
@@ -11,7 +11,8 @@ function App() {
     isSignedIn: false,
     name: "",
     photo: "",
-    email: ""
+    email: "",
+    isValid: false
   });
   const provider = new firebase.auth.GoogleAuthProvider();
   const handleSignIn = () => {
@@ -33,9 +34,61 @@ function App() {
         console.log(err.message);
       });
   };
+
+  /**
+   * signout handle
+   */
+  const handleSignOut = () => {
+    firebase
+      .auth()
+      .signOut()
+      .then(res => {
+        const signOutUser = {
+          isSignedIn: false,
+          name: "",
+          photo: "",
+          email: "",
+          password: ""
+        };
+        setUser(signOutUser);
+      })
+      .catch(err => {
+        console.log(err);
+        console.log(err.message);
+      });
+  };
+  /**
+   * 888888888888888888888888888888888888888888888888888
+   */
+  const is_valid_email = email => /(.+)@(.+){2,}\.(.+){2,}/.test(email);
+  const hasNumber = myString => /\d/.test(myString);
+
+  const handleChange = e => {
+    const newUserInfo = { ...user, [e.target.name]: e.target.value };
+    /**
+     * email password validation
+     */
+    let isValid = true;
+    if (e.target.name === "email") {
+      isValid = is_valid_email(e.target.value);
+    }
+    if (e.target.name === "password") {
+      isValid = e.target.value.length > 8 && hasNumber(e.target.value);
+    }
+    newUserInfo.isValid = isValid;
+    setUser(newUserInfo);
+  };
+  const createAccount = () => {
+    if (user.isValid) {
+    }
+  };
   return (
     <div className="App">
-      <button onClick={handleSignIn}>Sign In</button>
+      {user.isSignedIn ? (
+        <button onClick={handleSignOut}>Sign Out</button>
+      ) : (
+        <button onClick={handleSignIn}>Sign In</button>
+      )}
       {user.isSignedIn && (
         <div>
           {" "}
@@ -44,6 +97,30 @@ function App() {
           <img src={user.photo} alt="pic" />
         </div>
       )}
+      <hr />
+      <hr />
+      <hr />
+      <form onSubmit={createAccount}>
+        <h1> Auth Yourself</h1>
+        <input
+          type="text"
+          name="email"
+          placeholder="email"
+          onBlur={handleChange}
+          required
+        />
+        <br />
+        <input
+          type="password"
+          name="password"
+          placeholder="password"
+          onBlur={handleChange}
+          required
+        />
+        <br />
+        {/* <button onClick={createAccount}>Create Account</button> */}
+        <input type="submit" value="Create Account" />
+      </form>
     </div>
   );
 }
